@@ -1,0 +1,10 @@
+##fileformat=VCFv4.1
+##samtoolsVersion=0.1.16 (r963:234)
+##INFO=<ID=QF,Number=0,Type=Integer,Description="Quantum interference field">
+##INFO=<ID=RN,Number=0,Type=Integer,Description="Useless random noise">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+21	9419537	.	A	G,X	140	.	.
+21	48067612	.	G	C,X	110	.	.
+21	48072269	.	T	C,X	129	.	.
+21	48074537	.	G	A,X	999	.	.
+21	48078760	.	A	G,X	133	.	.

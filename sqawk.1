@@ -1,0 +1,91 @@
+.TH Sqawk 1 2012-11-28
+
+.SH NAME
+sqawk \- CLI SQL on CSV :-)
+
+.SH SYNOPSIS
+.PP
+\fBsqawk\fP [\fIrun-options\fP...] ([\fIfile-options\fP...] \fIfile\fP)... \fISQL\fP
+.PP 
+or in more detail:
+.PP
+\fBsqawk\fP [\fB-h\fP|\fB-k\fP|\fB-n\fP|\fB-P\fP|\fB-q\fP|\fB-v\fP] ([[\fB-F\fP|\fB-f\fP] \fIfirst-line-regex\fP|\fB-H\fP|\fB-i\fP \fIindex-field(s)\fP|\fB-K\fP \fIforeign-key\fP \fIreferent\fP|\fB-l\fP|\fB-p\fP \fIprimary-key-fields\fP|\fB-s\fP \fIseparator\fP|\fB-t\fP \fItextual-columns\fP] \fIfile\fP)... \fISQL\fP
+.PP
+.B Note:
+All options are single-letter, and in the current version they
+.I cannot
+be mixed, i.e. 
+.B -nqv
+will not work and should be written 
+.B -n -q -v
+(that is, separately).
+
+
+.SH DESCRIPTION
+.PP
+\fBsqawk\fP runs a SQL query on tables created on-the-fly from text files, and prints out the query result's rows. It allows extraction and manipulation of tabular data in the vein of \fBawk\fP(1), \fBsed\fP(1), \fBjoin\fP(1), \fBcut\fP(1), etc., but with the power and flexibility of SQL.
+.PP
+\fBsqawk\fP creates a database, in which it then creates and populates a table for each file named on the command line. By default the database resides in memory, and disappears once the program terminates (but see option \fB-k\fP).
+  The files are expected to in be comma-separated values (CSV)
+format, or a similar format (see options \fB-F\fP, \fB-f\fP, and \fPH\fP). The
+names of the database tables are derived from the names of the files, and the
+names of the table columns are derived from the CSV file fields, as specified
+in the header line (see NAME DERIVATIONS, below; see also option \fB-l\fP).
+
+.SS "NAME DERIVATIONS"
+
+The name of a table is derived from the name of the file by removing the file's extension (
+
+.SH OPTIONS 
+\fBsqawk\fP accepts
+.I run options
+, that are valid for the whole run, and
+.I file options
+, that are valid for the first file named after the option on the command line.
+
+.SS "RUN OPTIONS"
+
+.IP "\fB-h\fP" 
+Print the available options, then exit successfully. All other arguments and options are ignored.
+.IP "\fB-k\fP"
+Keep the database as a SQLite database file. The file is called \fIsqawk.db\fP, future versions may allow this to be parameterized.)
+.IP "\fB-n\fP" 
+Dry-run: do not create the database or do anything else. Usually used with \fB-v\fP and/or \fB-q\fP.
+.IP "\fB-P\fP \fIchunk-size\fP"
+Flush: the last file is read by chunks of \fIchunk-size\fP lines, and flushed (that is, the table is cleared) after every chunk is read. This avoids having the whole table in memory, and can be handy when iterating through huge files. On the other hand, any function that depends on the whole data being available (such as max or sum) will not work. For example, if the data in the last file are just looked up in another table (e.g. with a JOIN), the last file need not be kept in memory and may be very large. This will incur a performance penalty as well (not benchmarked yet).
+.IP "\fB-q\fP" 
+Show the generated SQL, as used to create and populate the tables, as well as
+to create any indexes.
+.IP "\fB-v\fP" 
+Verbose: show the values of options, parameters, files, etc.
+
+.SS "FILE OPTIONS"
+
+.IP "\fB-F\fP \fIregexp\fP"
+Skip and print all lines until a line matches \fIregexp\fP, which must be a POSIX (extended) regular expression. This allows the input file to have more than one header line, provided the one that contains the field names can be identified with a regular expression; at the same time the information contained in these lines is not lost.
+.IP "\fB-f\fP \fIregexp\fP"
+As with \fB-F\fP, but do not print the skipped lines.
+.IP \fB-H\fP 
+No headers: instructs \fBsqawk\fP to consider the first line as data, not headers. Field names will be automatically generated, and named \fBf1\fP...\fBf\fP\fIn\fP, where \fIn\fP is the number of columns in the file. The fields can be used in the SQL query as if they had been in the file header.
+.IP "\fB-i\fP \fIindex-fields\fP"
+Index the table on \fIindex-fields\fP. This makes \fIone\fP index, if there are several fields  the result is a composite index, not several idexes. For example, \fB-i 'POS,ID'\fP instructs \fBsqawk\fP to create a composite index of fields POS and ID.
+.IP "\fB-K\fP \fIchild-key parent-table(parent-key)\fP"
+Foreign key constraint. The value of field \fIchild-key\fP in this table must exist in field \fIparent-key\fP in table \fIparent-table\fP. INSERT queries that would violate this constraint are ignored. There are restrictions on the parent key, but primary keys are valid as parent keys.  See the SQLite docs for more. Only one constraint can be set for now.
+.IP \fB-l\fP 
+Literal field names: effectively puts single quotes around field names. This allows for field names with "weird" characters, such as '%', '#', spaces, etc.
+.IP "\fB-p\fP \fIprimary-key fields\fP"
+Primary key. The table's primary key is composed of the fields listed in \fIprimary-key fields\fP.
+.IP "\fB-s\fP \fIchar\fP"
+Separator: fields in this file are separated by \fIchar\fP (default is TAB).
+.IP "\fB-t\fP \fIfields\fP"
+Force fields to be textual. \fBsqawk\fP only looks at the first data line to determine column type. If a value in that line can be parsed as a number, the column gets type NUMERIC. Use option \fB-t\fP to override this. This affects e.g. sort order.
+
+.SH "SEE ALSO" 
+.PP
+\fBsqlite3\fP(1), \fBawk\fP(1), \fBsed\fP(1), \fBjoin\fP(1), \fBcut\fP(1)
+.PP
+
+.SH "AUTHOR" 
+
+Thomas Junier <thomas.junier@unine.ch>
+

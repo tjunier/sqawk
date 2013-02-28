@@ -1,0 +1,366 @@
+\startmode[presentation]
+
+\setuppapersize[S6][S6]
+
+\setuplayout [width=fit,
+	rightmargin=1.5cm,
+	leftmargin=1.5cm,
+	leftmargindistance=0pt,
+	rightmargindistance=0pt,
+	height=fit,
+	header=0pt,
+	footer=5pt,
+	topspace=1.5cm,
+	backspace=1.5cm,
+	bottomspace=.8cm,
+	bottom=12pt,
+	location=singlesided]
+
+% Fonts
+
+\usetypescript[palatino] [ec]
+\setupbodyfont[palatino,24pt] % or maybe 20pt, Palatino is big!
+
+\setupcolors[state=start]
+\setuppagenumber[state=stop]
+
+\setupbackgrounds[page][background=color,backgroundcolor=darkblue]
+\startcolor[white]
+
+\setupitemize[each][packed][]
+
+\definestartstop[Slide]
+	[commands={\switchtobodyfont[24pt]},
+	before=\page]
+
+\define[1]\SlideTitle
+	{\midaligned{\switchtobodyfont[palatino,30pt]{\bf #1}}
+	\blank[line]}
+
+\setupinteraction[page=yes,
+	color=InteractionColor,
+	contrastcolor=ContrastColor,
+	menu=on,
+	state=start]
+
+\startinteractionmenu[bottom]
+\rightaligned{\interactionbar[alternative=f,width=\makeupwidth,height=1ex]}
+\stopinteractionmenu
+
+\setuptolerance[verytolerant,stretch]
+
+\stopmode
+
+\startmode[manuscript]
+\setupframedtexts[location=middle,
+	before={\blank[line]},
+	after={\blank[line]}]
+\let\startSlide\startframedtext
+\let\stopSlide\stopframedtext
+
+\define[1]\SlideTitle{\midaligned{#1}\blank[small]}
+
+\stopmode
+
+\defineframedtext[Code][
+	foregroundstyle={\tt},
+	background=color,
+	backgroundcolor=lightgray,
+	foregroundcolor=black,
+	strut=yes,
+	frame=off,
+	corner=round,
+	width=local,
+	align=right,
+	location=middle,
+	offset=0.3ex]
+
+\define[1]\Shell{\Code{\$ #1}}
+
+\define[1]\Diff{\color[orange]{#1}}
+
+\definedescription[OutThere][
+	location=serried,headstyle=bold,width=broad]
+
+\usesymbols[mvs]
+
+\hyphenation{SELECT}
+
+\define \sqawk{sqawk}
+\define \cli{\cap{cli}}
+\define \csv{\cap{csv}}
+\define \sql{\cap{sql}} 
+
+
+\starttext
+
+\startSlide
+\SlideTitle{\sqawk}
+\startalignment[middle]
+or \par
+\cli{} \sql{} for \csv :-) \par
+i.e. \par
+making some shell tasks on \csv{} files easier
+\stopalignment
+\stopSlide
+
+\startSlide
+\SlideTitle{Comma-separated Values}
+\vfill
+\rightarrow{} {\em lingua franca} of tabular data (e.g., relational databases)
+\vfill
+\stopSlide
+
+\startSlide
+\SlideTitle{Simple \csv{} file tasks}
+\vfill
+\csv{} is text \Rightarrow{} work in the shell
+\vfill
+\startalignment[lohi]
+\startitemize[a,unpacked]
+	\item extract all rows of {\tt myfile} where the value in field \#3 is greater than 12.5
+	\item join {\tt file1} with {\tt file2} on a common field 
+\stopitemize
+\stopalignment
+\vfill
+\stopSlide
+
+\startSlide
+\SlideTitle{Shell one-liners}
+\vfill
+\startitemize[a,unpacked]
+	\item \Shell{awk '{\$3 > 12.5}' < myfile}
+	\item \Shell{join file1 file2} \par
+	{\small supposing both files are sorted on the join field, in this case \#1}
+\stopitemize
+\vfill
+\stopSlide
+
+\startSlide
+\SlideTitle{Similar tasks} 
+\startitemize[a,unpacked][stopper={'.}]
+	\item extract all rows of {\tt myfile} where the value in column 3 \Diff{is above average}
+	\item join {\tt file1} with {\tt file2}, but \Diff{on a composite join field} (e.g. hospital ID + patient ID)
+	\item join \Diff{more than two files} (e.g. genotypes, covariates, eigenvalues)
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{{\em No} one-liners!}
+\startitemize[a,unpacked][stopper={'.}]
+	\item {\tt awk} must have read all of column 3 to compute average
+	\item {\tt join} needs both files sorted (extra steps, destroys order); can't use $> 1$ field 
+	\item {\tt join} cannot handle $> 2$ files
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{Personal postulate}
+\vfill
+There is a category of tasks that can {\em almost} be done with one-liners,
+      but not quite
+\vfill
+This is a shame \symbol[martinvogel 2][Smiley]
+\vfill
+And as a matter of fact\ldots
+\vfill
+\stopSlide
+
+\startSlide
+\SlideTitle{As Database Operations}
+\ldots{} you can express them as a single \sql{} query:
+\startitemize[a,packed][stopper={'.}]
+	\item \Code{SELECT * FROM t1 WHERE f3 > (SELECT avg(f3));}
+	\item \Code{SELECT t1.* FROM t1 JOIN t2 USING (f1,f2,f3);}
+	\item \Code{SELECT ... FROM t1 JOIN t2 ... JOIN t3 ...;}
+\stopitemize
+\switchtobodyfont[14.4pt]{where tables ({\tt t1}, etc.) contain files, columns ({\tt f1}, etc.) contain file fields}
+\stopSlide
+
+\startSlide
+\SlideTitle{but\ldots}
+to do \sql{} queries on a file, you need:
+\startitemize
+	\item to create a database
+	\item to create a table for the file
+	\item to import the file's data into the table
+	\item (usually) a \sql{} server 
+\stopitemize
+\ldots which is a bit unwieldy.
+\stopSlide
+
+\startSlide
+\SlideTitle{in other words}
+\midaligned{
+\starttable[|r|l|l|]
+\NC \NC {\bf pros} \NC {\bf cons} \SR
+\HL
+\NC shell 1-liners \NC concise \NC limited \NC\AR
+\NC \sql{} \NC expressive \NC awkward \SR
+\stoptable
+}
+\startproperty[hidden]
+$\rightarrow$ Is it possible to have the concision and the expressiveness?
+\stopproperty
+\stopSlide
+
+\startSlide
+\SlideTitle{in other words}
+\midaligned{
+\starttable[|r|l|l|]
+\NC \NC {\bf pros} \NC {\bf cons} \SR
+\HL
+\NC shell 1-liners \NC concise \NC limited \NC\AR
+\NC \sql{} \NC expressive \NC awkward \SR
+\stoptable
+}
+$\rightarrow$ Can we have both the concision and the expressiveness?
+\stopSlide
+
+\startSlide
+\SlideTitle{Wish List}
+the successful candidate will:
+\startitemize
+	\item automatically create a database
+	\item automatically create db tables from \csv{} files
+	\item automatically import content into the tables
+	\item run a \sql{} query
+	\item print out the result
+	\item be a shell filter
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{Anything Out There?}
+\startOutThere{\sql{}-Powered Awk}
+Functions for accessing My\sql{}  databases from Awk
+\stopOutThere
+\startOutThere{ShellSQL} Programs that enable shell scripts to connect to \sql{} engines
+\stopOutThere
+\vfill
+\midaligned{$\rightarrow$ not exactly what I want}
+\stopSlide
+
+\startSlide
+\SlideTitle{SQLite}
+\startitemize
+\item C library (not server)
+\item small, fast
+\stopitemize
+$\rightarrow$ if we can automate table creation and population, we're done.
+\stopSlide
+
+\startSlide
+\SlideTitle{Results}
+\stopSlide
+
+\startSlide
+\SlideTitle{\sqawk}
+{\small (or "squawk", need a better name anyway\ldots clisql?)}
+\startitemize[n,repeat]
+	\item creates a database (memory -> transient)
+	\item for each \csv{} file (or stdin):
+	\startitemize[n]
+		\item examines first few lines
+		\item creates a table with appropriate names and types
+	\stopitemize
+	\item runs the \sql{} query
+	\item prints out the result rows
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{Syntax}
+\Shell {\sqawk{} [opts] ([file opts] file)+ SQL}
+\vfill
+Selected options:
+\startitemize[unpacked]
+	\item {\tt\bf -i}: specifies index fields
+	\item {\tt\bf -p}: specifies primary key
+	\item {\tt\bf -q}: shows the generated SQL
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{Examples}
+\startitemize[a][stopper={'.}]
+	\item \Shell{sqawk myfile.csv 'SELECT * FROM myfile WHERE f3 > (SELECT avg(f3))'}
+	\item \Code{sqawk file1.csv file2.csv 'SELECT * FROM file1 JOIN file2 USING (f1,f2,f3);}
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{Checking for valid IDs}
+\vfill
+\startitemize
+\item file \filename{valid}: list of valid IDs
+\item file \filename{dubious}: uncertain IDs (among other data)
+\stopitemize
+\vfill
+\Shell{./sqawk valid dubious 'SELECT * FROM dubious WHERE dubious.spc NOT IN (SELECT spc FROM valid)'}
+\vfill
+\stopSlide
+
+% \startSlide
+% \SlideTitle{Fixing field order}
+% Received Excel tables with different ordering of fields
+% \vfill
+% \Shell{\typefile{../example_3}}
+% \vfill
+% \stopSlide
+% 
+% \startSlide
+% \SlideTitle{Intersecting VCFs}
+% \vfill
+% \Shell{\typefile{../example_2}}
+% \vfill
+% \stopSlide
+
+\startSlide
+\SlideTitle{Conclusion}
+\startitemize
+	\item \sqawk{} makes working with \csv{} and \csv{}-like files easier 
+	tasks
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{In an ideal world:}
+\startitemize
+\item data is consistently formatted
+\item data formats are compatible
+\item data is validated before use
+\item \ldots
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{In the real world\ldots}
+\startitemize
+\item data is messy
+\item there is a plethora of incompatible formats
+\item nobody checks the data before sending it :-)
+\item \ldots
+\stopitemize
+\stopSlide
+
+\startSlide
+\SlideTitle{what can be done?}
+\startitemize
+\item export to \csv{}
+\item write code to systematically check the data
+\item \ldots
+\stopitemize
+\Rightarrow{} this is where \sqawk{} might help.
+\stopSlide
+
+\startSlide
+\SlideTitle{That's all}
+\vfill
+Thanks
+\vfill
+\stopSlide
+
+
+
+\stoptext
