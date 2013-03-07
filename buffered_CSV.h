@@ -6,6 +6,10 @@
  * pipe. There are functions for getting the number, names and types of the
  * fields, as well as for iterating on the lines. */
 
+/* The reason for using this instead of a simple FILE* is that if the FILE is a
+ * pipe, then one cannot seek() on it. That means the header line, etc., must
+ * be stored not seek()ed. */
+
 /* Intended use is something like this:
  *
  * Create buffered_CSV_t object:
@@ -98,10 +102,6 @@ char **buf_csv_next_data_line_fields(buffered_CSV_t *);
 /* Calls feof() on the associated FILE*, and returns its value */
 
 int buf_csv_eof(buffered_CSV_t *);
-
-/* Closes the associated FILE* */
-
-void buf_csv_close(buffered_CSV_t *);
 
 /* Destroys the buffered_CSV structure */
 

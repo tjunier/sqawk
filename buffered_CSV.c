@@ -142,6 +142,14 @@ buffered_CSV_t *create_buffered_CSV(FILE * csv, char separator,
 	return buf_csv;
 }
 
+void destroy_buffered_CSV(buffered_CSV_t *buf_csv)
+{
+	fclose(buf_csv->csv);
+	free(buf_csv->header_line);
+	free(buf_csv->first_data_line);
+	free(buf_csv);
+}
+
 int buf_csv_field_count(buffered_CSV_t *buf_csv)
 {
 	return buf_csv->field_count;
@@ -240,23 +248,27 @@ char **buf_csv_header_fields(buffered_CSV_t *buf_csv)
 
 	char *hdr = buf_csv_header_line(buf_csv);
 	if (NULL == hdr) return NULL;
-	return tokenize(hdr, buf_csv->separator,
+	char **fields = tokenize(hdr, buf_csv->separator,
 			buf_csv_field_count(buf_csv));
+	free(hdr);
+	return fields;
 }
 
 char **buf_csv_first_data_line_fields(buffered_CSV_t *buf_csv)
 {
 	char *fd = buf_csv_first_data_line(buf_csv);
 	if (NULL == fd) return NULL;
-	return tokenize(fd, buf_csv->separator,
+	char ** fields = tokenize(fd, buf_csv->separator,
 			buf_csv_field_count(buf_csv));
+	free(fd);
+	return fields;
 }
 
 char **buf_csv_next_data_line_fields(buffered_CSV_t *buf_csv)
 {
 	char *csv_line = NULL;
 	ssize_t chars_read = buf_csv_next_data_line(&csv_line, buf_csv);
-	if (-1 == chars_read) return NULL;
+	if (-1 == chars_read) { free(csv_line) ; return NULL; }
 
 	char **result = tokenize(csv_line, buf_csv->separator,
 		buf_csv_field_count(buf_csv));
@@ -268,7 +280,6 @@ char **buf_csv_next_data_line_fields(buffered_CSV_t *buf_csv)
 
 int buf_csv_eof(buffered_CSV_t *buf_csv) { return feof(buf_csv->csv); }
 
-void buf_csv_close(buffered_CSV_t *buf_csv) { fclose(buf_csv->csv); }
 
 #ifdef TEST_BUFFERED_CSV
 

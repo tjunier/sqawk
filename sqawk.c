@@ -989,7 +989,7 @@ static void read_file_into_table(sqlite3 *db, int file_index,
 	/* Release memory */
 
 	free(tbl_name);
-	buf_csv_close(buf_csv);
+	destroy_buffered_CSV(buf_csv);
 }
 
 static sqlite3* create_db(const char *database)
