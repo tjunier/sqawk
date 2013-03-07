@@ -47,6 +47,7 @@ struct file_params {
 	char *primary_key_fields;
 	char *foreign_key;
 	char *fk_referent;
+	char *alias;
 };
 
 
@@ -119,6 +120,7 @@ static struct parameters *parse_arguments(int argc, char **argv)
 	params->files[file_num].primary_key_fields = NULL;
 	params->files[file_num].foreign_key = NULL;
 	params->files[file_num].fk_referent = NULL;
+	params->files[file_num].alias = NULL;
 
 	int argn;
 	/* 1: skips prog name; -1: last arg is SQL */
@@ -137,6 +139,10 @@ static struct parameters *parse_arguments(int argc, char **argv)
 			else if (0 == strcmp("-P", argv[argn])) {
 				argn++;
 				params->chunk_size = atoi(argv[argn]);
+			}
+			else if (0 == strcmp("-a", argv[argn])) {
+				argn++;
+				params->files[file_num].alias = strdup(argv[argn]);
 			}
 			else if (0 == strcmp("-i", argv[argn])) {
 				argn++;
@@ -250,6 +256,8 @@ static void show_params(struct parameters *params)
 		if (NULL != fp.foreign_key) 
 			printf (", foreign key '%s' on '%s'",
 				fp.foreign_key, fp.fk_referent);
+		if (NULL != fp.alias)
+			printf (", aliased to '%s'", fp.alias);
 		
 		printf(".\n");
 	}
@@ -936,7 +944,12 @@ static void read_file_into_table(sqlite3 *db, int file_index,
 		if (NULL == buf_csv) die(NULL);
 	}
 
-	char * tbl_name = filename2tablename(fp.filename);
+	char * tbl_name;
+	if (NULL == fp.alias)
+		tbl_name = filename2tablename(fp.filename);
+	else
+		tbl_name = fp.alias;
+
 	if (NULL == tbl_name) { perror(NULL); exit (EXIT_FAILURE); }
 
 	if (run_switches & sw_verbose) {
@@ -1074,7 +1087,12 @@ static void lean_run(sqlite3 *db, struct parameters *params)
 		if (NULL == buf_csv) die(NULL);
 	}
 
-	char * tbl_name = filename2tablename(fp.filename);
+	char * tbl_name;
+	if (NULL == fp.alias)
+		tbl_name = filename2tablename(fp.filename);
+	else
+		tbl_name = fp.alias;
+
 	if (NULL == tbl_name) { perror(NULL); exit (EXIT_FAILURE); }
 
 	if (params->switches & sw_verbose)

@@ -902,3 +902,22 @@ if cat $sample | $SQAWK -v - 'SELECT * FROM stdin LIMIT 5' > test25.out ; then
 else
 	echo "ERROR"
 fi
+
+# Test 26: file name aliases
+
+cat <<END > test26.exp
+count(*)
+2372
+END
+
+echo -n "Test 26:	"
+if $SQAWK -a tbl ./data/AnAbsurdlyLongFileName.csv 'SELECT count(*) FROM tbl' > test26.out ; then
+	if diff test26.out test26.exp ; then
+		echo "pass"
+		rm test26.{out,exp}
+	else
+		echo "FAIL"
+	fi
+else
+	echo "ERROR"
+fi

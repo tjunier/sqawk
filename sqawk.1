@@ -61,6 +61,11 @@ Verbose: show the values of options, parameters, files, etc.
 
 .SS "FILE OPTIONS"
 
+.IP "\fB-a\fP \fIalias\fP"
+Use a (presumably more convenient) alias for the table name. This is useful if a
+file has a long and/or hard-to-type name. If you say, e.g. \fB-a tbl
+MyVeryLongAndWëirdFileName.csv\fP, you can use just \fBtbl\fP in the SQL query
+to refer to the table made from that file. 
 .IP "\fB-F\fP \fIregexp\fP"
 Skip and print all lines until a line matches \fIregexp\fP, which must be a POSIX (extended) regular expression. This allows the input file to have more than one header line, provided the one that contains the field names can be identified with a regular expression; at the same time the information contained in these lines is not lost.
 .IP "\fB-f\fP \fIregexp\fP"
