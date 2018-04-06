@@ -687,7 +687,7 @@ col_types[0]: TEXT
 col_types[1]: TEXT
 col_types[2]: TEXT
 cid	name	type	notnull	dflt_value	pk
-0	surname	TEXT	0	(null)	1
+0	surname	TEXT	0	(null)	2
 1	name	TEXT	0	(null)	1
 2	job	TEXT	0	(null)	0
 END
